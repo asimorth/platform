@@ -35,14 +35,14 @@ export default function RootLayout({
         <ThemeProvider>
           <header className="w-full shadow-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
             <nav className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <a href="/" className="flex items-center space-x-2 group">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
                   <span className="text-white font-bold text-sm">A</span>
                 </div>
-                <div className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <div className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent group-hover:underline">
                   Asimorth
                 </div>
-              </div>
+              </a>
               
               <ul className="hidden md:flex gap-8 text-base font-medium">
                 <li>
