@@ -32,18 +32,5 @@
         }
       ]
     }
-  ],
-  "redirects": [
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.asimorth.pro"
-        }
-      ],
-      "destination": "https://asimorth.pro",
-      "permanent": true
-    }
   ]
 } 
