@@ -7,8 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
-export default function CharacterPage() {
+function CharacterPageContent() {
+  const { user } = useAuth();
   const [character, setCharacter] = useState({
     name: "",
     description: "",
@@ -36,7 +39,13 @@ export default function CharacterPage() {
   const [generatedAvatarUrl, setGeneratedAvatarUrl] = useState("");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/voices")
+    if (!user) return;
+    
+    fetch("http://127.0.0.1:8000/voices", {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
       .then(res => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -52,14 +61,19 @@ export default function CharacterPage() {
         console.error("Voices yüklenirken hata:", error);
         setStatus("⚠️ Sesler yüklenirken hata oluştu.");
       });
-  }, []);
+  }, [user]);
 
   const handleSave = async () => {
+    if (!user) return;
+    
     setLoading(true);
     setStatus("");
     const res = await fetch("http://127.0.0.1:8000/characters", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      },
       body: JSON.stringify(character),
     });
     setLoading(false);
@@ -97,12 +111,15 @@ export default function CharacterPage() {
   };
 
   const generateAvatar = async () => {
+    if (!user) return;
+    
     setAvatarLoading(true);
     try {
       const response = await fetch("http://127.0.0.1:8000/avatar/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         },
         body: JSON.stringify(avatarForm),
       });
@@ -122,8 +139,6 @@ export default function CharacterPage() {
     }
   };
 
-  if (!character) return <div className="p-4 text-center">Yükleniyor...</div>;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 py-12 px-4">
       <div className="max-w-4xl mx-auto">
@@ -138,7 +153,8 @@ export default function CharacterPage() {
             </h1>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Hayalindeki AI karakterini oluştur ve kişiselleştir. Benzersiz kişilik, ses ve avatar seçenekleriyle karakterini hayata geçir.
+            Merhaba <span className="font-semibold text-purple-600 dark:text-purple-400">{user?.username}</span>! 
+            Hayalindeki AI karakterini oluştur ve kişiselleştir.
           </p>
         </div>
 
@@ -483,5 +499,13 @@ export default function CharacterPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function CharacterPage() {
+  return (
+    <ProtectedRoute>
+      <CharacterPageContent />
+    </ProtectedRoute>
   );
 }

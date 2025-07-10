@@ -2,8 +2,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
-export default function GundemPage() {
+function GundemPageContent() {
+  const { user } = useAuth();
   const [ozet, setOzet] = useState("");
   const [loading, setLoading] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
@@ -18,6 +21,8 @@ export default function GundemPage() {
   const [ozetCreatedAt, setOzetCreatedAt] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
+    
     // Karakterleri yükle
     fetchCharacters();
     
@@ -26,11 +31,15 @@ export default function GundemPage() {
     if (charStr) {
       setCharacter(JSON.parse(charStr));
     }
-  }, []);
+  }, [user]);
 
   const fetchCharacters = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/characters");
+      const res = await fetch("http://127.0.0.1:8000/characters", {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
       if (res.ok) {
         const data = await res.json();
         setCharacters(data);
@@ -65,7 +74,10 @@ export default function GundemPage() {
     try {
       const res = await fetch("http://127.0.0.1:8000/gundem/ozet", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
         body: JSON.stringify({ character, force_refresh: false }),
       });
       const data = await res.json();
@@ -98,7 +110,10 @@ export default function GundemPage() {
     try {
       const res = await fetch("http://127.0.0.1:8000/gundem/ozet", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
         body: JSON.stringify({ character, force_refresh: true }),
       });
       const data = await res.json();
@@ -135,7 +150,10 @@ export default function GundemPage() {
       
       const res = await fetch("http://127.0.0.1:8000/gundem/sesli", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
         body: JSON.stringify({ character, ozet }), // Mevcut özeti gönder
       });
       
@@ -198,7 +216,10 @@ export default function GundemPage() {
     try {
       const res = await fetch("http://127.0.0.1:8000/gundem/goruntulu", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
         body: JSON.stringify({ character, ozet }), // Mevcut özeti gönder
       });
       if (res.ok) {
@@ -228,6 +249,7 @@ export default function GundemPage() {
             </h1>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Merhaba <span className="font-semibold text-green-600 dark:text-green-400">{user?.username}</span>! 
             Karakterinle gündem araştır, özetleri sesli veya görüntülü okut. 
             <span className="block text-sm text-gray-500 dark:text-gray-400 mt-2">
               AI destekli gündem analizi ile güncel olayları karakterinizin perspektifinden dinleyin.
@@ -501,22 +523,17 @@ export default function GundemPage() {
                           </div>
                         )}
                         <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <h3 className="font-semibold text-gray-900 dark:text-white">{char.name}</h3>
-                            {char.id === "asimorth-default" && (
-                              <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded-full">
-                                Varsayılan
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">{char.tone}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                          <div className="font-semibold text-gray-900 dark:text-white">{char.name}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">{char.tone}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
                             {char.description}
-                          </p>
+                          </div>
                         </div>
                         {character?.id === char.id && (
-                          <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
-                            <span className="text-white text-sm">✓</span>
+                          <div className="text-purple-500">
+                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
                           </div>
                         )}
                       </div>
@@ -529,5 +546,13 @@ export default function GundemPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function GundemPage() {
+  return (
+    <ProtectedRoute>
+      <GundemPageContent />
+    </ProtectedRoute>
   );
 } 

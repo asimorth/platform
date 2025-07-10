@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self'",
-              "connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 http://127.0.0.1:8001 http://localhost:8001",
+              "connect-src 'self' https://api.asimorth.pro http://127.0.0.1:8000 http://localhost:8000 http://127.0.0.1:8001 http://localhost:8001",
               "media-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Character = {
   id: string;
@@ -16,22 +18,32 @@ type Character = {
   voice_id?: string;
 };
 
-export default function ManagePage() {
+function ManagePageContent() {
+  const { user } = useAuth();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Character | null>(null);
   const [editStatus, setEditStatus] = useState("");
 
   useEffect(() => {
+    if (!user) return;
     fetchCharacters();
-  }, []);
+  }, [user]);
 
   const fetchCharacters = () => {
     setLoading(true);
-    fetch("http://127.0.0.1:8000/characters")
+    fetch("http://127.0.0.1:8000/characters", {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => {
         setCharacters(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Karakterler yüklenirken hata:", error);
         setLoading(false);
       });
   };
@@ -42,7 +54,12 @@ export default function ManagePage() {
       return;
     }
     if (confirm("Bu karakteri silmek istediğinizden emin misiniz?")) {
-      const res = await fetch(`http://127.0.0.1:8000/characters/${id}`, { method: "DELETE" });
+      const res = await fetch(`http://127.0.0.1:8000/characters/${id}`, { 
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
       if (res.ok) {
         fetchCharacters();
       } else {
@@ -57,7 +74,10 @@ export default function ManagePage() {
     setEditStatus("");
     const res = await fetch(`http://127.0.0.1:8000/characters/${editing.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      },
       body: JSON.stringify(editing),
     });
     if (res.ok) {
@@ -83,6 +103,7 @@ export default function ManagePage() {
             </h1>
           </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Merhaba <span className="font-semibold text-orange-600 dark:text-orange-400">{user?.username}</span>! 
             Oluşturduğun karakterleri burada görüntüleyebilir, düzenleyebilir ve yönetebilirsin.
             <span className="block text-sm text-gray-500 dark:text-gray-400 mt-2">
               Karakterlerini düzenle, sil veya yeni özellikler ekle.
@@ -360,5 +381,13 @@ export default function ManagePage() {
         )}
       </div>
     </main>
+  );
+} 
+
+export default function ManagePage() {
+  return (
+    <ProtectedRoute>
+      <ManagePageContent />
+    </ProtectedRoute>
   );
 } 
